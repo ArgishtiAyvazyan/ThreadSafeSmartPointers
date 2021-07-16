@@ -14,8 +14,7 @@
 #include <type_traits>
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-namespace ts
-{
+namespace ts {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
@@ -335,6 +334,28 @@ public:
     proxy_locker_for_subscript operator*() const
     {
         return proxy_locker_for_subscript(m_mtx, m_value.get());
+    }
+
+    /**
+     * @brief   Returns the deleter object which would be used for destruction of the
+     *          managed object.
+     *
+     * @return  The stored deleter object.
+     */
+    [[nodiscard]] deleter_type& get_deleter() noexcept
+    {
+        return m_value.get_deleter();
+    }
+
+    /**
+     * @brief   Returns the deleter object which would be used for destruction of the
+     *          managed object.
+     *
+     * @return  The stored deleter object.
+     */
+    [[nodiscard]] const deleter_type& get_deleter() const noexcept
+    {
+        return m_value.get_deleter();
     }
 
 private:

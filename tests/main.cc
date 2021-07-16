@@ -139,6 +139,20 @@ TEST(unique_ptr_api_testing, deleter2)
     ASSERT_EQ(dummy_object::ms_object_count, 0);
 }
 
+template <typename T>
+void custom_deleter(T* ptr)
+{
+    delete ptr;
+}
+
+TEST(unique_ptr_api_testing, get_deleter_testing)
+{
+        using deleted_unique_ptr = ts::unique_ptr<int, std::mutex
+                , void(*)(int*)>;
+        deleted_unique_ptr unique_ptr { new int, &custom_deleter<int> };
+        ASSERT_EQ(unique_ptr.get_deleter(), &custom_deleter<int>);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Thread safety testing.
 ////////////////////////////////////////////////////////////////////////////////
