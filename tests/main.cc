@@ -175,6 +175,18 @@ TEST(unique_ptr_api_testing, release_operator)
     ASSERT_FALSE(initialized_ptr);
 }
 
+TEST(unique_ptr_api_testing, reset_operator)
+{
+    {
+        auto initialized_ptr = ts::make_unique<dummy_object>();
+        initialized_ptr.reset();
+        ASSERT_EQ(0, dummy_object::ms_object_count);
+        initialized_ptr.reset(new dummy_object);
+        ASSERT_EQ(1, dummy_object::ms_object_count);
+    }
+    ASSERT_EQ(0, dummy_object::ms_object_count);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Thread safety testing.
 ////////////////////////////////////////////////////////////////////////////////

@@ -382,6 +382,13 @@ public:
         return m_value.release();
     }
 
+    template <typename TArgs = pointer>
+    void reset(TArgs new_pointer = nullptr) noexcept
+    {
+        std::lock_guard lock { m_mtx };
+        m_value.reset(new_pointer);
+    }
+
 private:
     /**
      * The mutex for providing object thread-safety.
