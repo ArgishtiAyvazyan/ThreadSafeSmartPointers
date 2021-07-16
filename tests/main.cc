@@ -9,6 +9,8 @@
 
 #include <map>
 #include <thread>
+#include <queue>
+#include <atomic>
 
 #include <gtest/gtest.h>
 
@@ -214,6 +216,49 @@ TEST(unique_ptr_thread_safety_testing, concurrent_arr_read_write)
         ASSERT_EQ((*arr_ptr)[i], 0);
     }
 }
+
+TEST(unique_ptr_thread_safety_testing, api_race)
+{
+    for (int32_t pass = 0; pass < 100; ++pass)
+    {
+        auto queue = ts::make_unique<std::queue<int32_t>>();
+        constexpr int32_t element_count = 100;
+        std::atomic_bool done{false};
+
+        auto producer = [&queue, &done]()
+        {
+            for (int32_t i = 0; i < element_count; ++i)
+            {
+                queue->push(i);
+            }
+            done.store(true);
+        };
+
+        auto consumer = [&queue, &done]()
+        {
+            while (!done || !queue->empty())
+            {
+                std::lock_guard lock{queue};
+                if (queue.get()->empty())
+                {
+                    continue;
+                }
+                queue.get()->pop();
+            }
+        };
+
+        std::vector<std::thread> arr_threads;
+        arr_threads.emplace_back(producer);
+        for (int32_t i = 0; i < 4; ++i)
+        {
+            arr_threads.emplace_back(consumer);
+        }
+
+        std::ranges::for_each(arr_threads, std::mem_fn(&std::thread::join));
+        ASSERT_EQ(0, queue->size());
+    }
+}
+
 
 int main(int argc, char **argv)
 {
