@@ -369,6 +369,19 @@ public:
         return static_cast<bool>(m_value);
     }
 
+    /**
+     * @brief   Releases the ownership of the managed object and returns owned object pointer.
+     *
+     * @warning The caller is responsible for deleting the object.
+     *
+     * @return  Pointer to the managed object or nullptr if there was no managed object.
+     */
+    [[nodiscard]] pointer release() noexcept
+    {
+        std::lock_guard lock { m_mtx };
+        return m_value.release();
+    }
+
 private:
     /**
      * The mutex for providing object thread-safety.

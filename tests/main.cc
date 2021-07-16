@@ -164,6 +164,17 @@ TEST(unique_ptr_api_testing, bool_operator)
     ASSERT_TRUE(empty_ptr);
 }
 
+TEST(unique_ptr_api_testing, release_operator)
+{
+    ts::unique_ptr<int> empty_ptr;
+    ASSERT_EQ(empty_ptr.release(), nullptr);
+    auto initialized_ptr = ts::make_unique<int>();
+    auto p_object = initialized_ptr.release();
+    ASSERT_TRUE(nullptr != p_object);
+    delete p_object;
+    ASSERT_FALSE(initialized_ptr);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // Thread safety testing.
 ////////////////////////////////////////////////////////////////////////////////
