@@ -103,7 +103,7 @@ TEST(unique_ptr_api_testing, deleter)
         {
             delete p;
         };
-        using deleted_unique_ptr = ts::unique_ptr<dummy_object
+        using deleted_unique_ptr = ts::unique_ptr<dummy_object, std::mutex
                 , decltype(deleter)>;
 
         constexpr int32_t test_count = 100;
@@ -125,7 +125,7 @@ TEST(unique_ptr_api_testing, deleter2)
         {
             delete p;
         };
-        using deleted_unique_ptr = ts::unique_ptr<dummy_object
+        using deleted_unique_ptr = ts::unique_ptr<dummy_object, std::mutex
                 , std::function<void(dummy_object*)>>;
 
         constexpr int32_t test_count = 100;
