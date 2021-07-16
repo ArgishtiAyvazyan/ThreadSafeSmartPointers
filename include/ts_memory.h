@@ -382,6 +382,12 @@ public:
         return m_value.release();
     }
 
+    /**
+     * @brief               Replaces the managed object and sets new if that is given.
+     *
+     * @tparam TArgs        The type of argument, using for automatic overload all methods.
+     * @param new_pointer   Pointer to a new object to manage
+     */
     template <typename TArgs = pointer>
     void reset(TArgs new_pointer = nullptr) noexcept
     {
