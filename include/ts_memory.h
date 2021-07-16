@@ -358,6 +358,17 @@ public:
         return m_value.get_deleter();
     }
 
+    /**
+     * @brief   Checks whether *this owns an object, i.e. whether get() != nullptr.
+     *
+     * @return  true if *this owns an object, false otherwise.
+     */
+    explicit operator bool() const noexcept
+    {
+        std::lock_guard lock { m_mtx };
+        return static_cast<bool>(m_value);
+    }
+
 private:
     /**
      * The mutex for providing object thread-safety.

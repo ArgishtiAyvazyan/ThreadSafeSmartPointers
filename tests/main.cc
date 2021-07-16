@@ -147,10 +147,21 @@ void custom_deleter(T* ptr)
 
 TEST(unique_ptr_api_testing, get_deleter_testing)
 {
-        using deleted_unique_ptr = ts::unique_ptr<int, std::mutex
-                , void(*)(int*)>;
-        deleted_unique_ptr unique_ptr { new int, &custom_deleter<int> };
-        ASSERT_EQ(unique_ptr.get_deleter(), &custom_deleter<int>);
+    using deleted_unique_ptr = ts::unique_ptr<int, std::mutex
+            , void(*)(int*)>;
+    deleted_unique_ptr unique_ptr { new int, &custom_deleter<int> };
+    ASSERT_EQ(unique_ptr.get_deleter(), &custom_deleter<int>);
+}
+
+TEST(unique_ptr_api_testing, bool_operator)
+{
+    auto initialized_ptr = ts::make_unique<int>();
+    ASSERT_TRUE(initialized_ptr);
+    ts::unique_ptr<int> empty_ptr;
+    ASSERT_FALSE(empty_ptr);
+    empty_ptr = std::move(initialized_ptr);
+    ASSERT_FALSE(initialized_ptr);
+    ASSERT_TRUE(empty_ptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
