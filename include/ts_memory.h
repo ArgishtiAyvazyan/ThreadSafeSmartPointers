@@ -47,7 +47,8 @@ namespace ts {
  *                  p_vec->push_back(13);
  *
  * @example         Below shown example for use with custom deleter.
- *                  ts::unique_ptr<std::vector<int>, std::mutex, std::function<void(std::vector<int>*)>>
+ *                  ts::unique_ptr<std::vector<int>, std::mutex
+ *                      , std::function<void(std::vector<int>*)>>
  *                      p_vec { new std::vector<int>{}, [](auto* vec) { delete vec; } };
  *                  p_vec->push_back(13);
  *
@@ -232,7 +233,7 @@ public:
      *              (void) queue.get()->pop();
      *          }
      */
-    void lock()
+    void lock() const
     {
         m_mtx.lock();
     }
@@ -241,9 +242,20 @@ public:
      * @brief   Unlocks the mutex.
      *          Using for solve API races.
      */
-    void unlock()
+    void unlock() const
     {
         m_mtx.unlock();
+    }
+
+    /**
+     * @brief   Tries to lock the mutex. Returns immediately.
+     *          On successful lock acquisition returns true, otherwise returns false.
+     *
+     * @return  true if the lock was acquired successfully, otherwise false.
+     */
+    bool try_lock() const
+    {
+        return m_mtx.try_lock();
     }
 
     /**
@@ -254,7 +266,7 @@ public:
      *
      * @return  The raw pointer.
      */
-    [[nodiscard]] t_element_type* get() const noexcept
+    [[nodiscard]] pointer get() const noexcept
     {
         return m_value.get();
     }
@@ -294,13 +306,13 @@ public:
 
     unique_ptr(unique_ptr&& other) noexcept
     {
-        std::scoped_lock lock {this->m_mtx, other.m_mtx};
+        std::scoped_lock lock { this->m_mtx, other.m_mtx };
         this->m_value = std::move(other.m_value);
     }
 
     unique_ptr& operator=(unique_ptr&& other) noexcept
     {
-        std::scoped_lock lock {this->m_mtx, other.m_mtx};
+        std::scoped_lock lock { this->m_mtx, other.m_mtx };
         this->m_value = std::move(other.m_value);
         return *this;
     }
@@ -407,6 +419,10 @@ private:
     t_unique_ptr m_value;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utilities
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 /**
  * @brief           Constructs an object of type T and wraps it in a
  *                  ts::unique_ptr. (Specialization for a single object.)
@@ -445,6 +461,143 @@ std::enable_if_t<std::is_array<T>::value, unique_ptr<T>> make_unique(std::size_t
 {
     using t_element_type = typename std::remove_extent_t<T>;
     return unique_ptr<T>(new t_element_type[n]);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Compares two ts::unique_ptrs
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+namespace impl {
+template <typename T, typename M, typename D>
+using to_row_t = typename unique_ptr<T, M, D>::pointer;
+}
+
+template <typename T1, typename M1, typename D1, typename T2, typename M2, typename D2>
+[[nodiscard]] bool operator<(const unique_ptr<T1, M1, D1>& left, const unique_ptr<T2, M2, D2>& right)
+{
+    if(std::addressof(left) == std::addressof(right))
+    {
+        return false;
+    }
+    using t_ptr1 = impl::to_row_t<T1, M1, D1>;
+    using t_ptr2 = impl::to_row_t<T2, M2, D2>;
+    using t_common = std::common_type_t<t_ptr1, t_ptr2>;
+    std::scoped_lock lock { left, right };
+    return std::less<t_common> {}(left.get(), right.get());
+}
+
+template <typename T1, typename M1, typename D1, typename T2, typename M2, typename D2>
+[[nodiscard]] bool operator>(const unique_ptr<T1, M1, D1>& left, const unique_ptr<T2, M2, D2>& right)
+{
+    return right < left;
+}
+
+template <typename T1, typename M1, typename D1, typename T2, typename M2, typename D2>
+[[nodiscard]] bool operator<=(const unique_ptr<T1, M1, D1>& left, const unique_ptr<T2, M2, D2>& right)
+{
+    return !(right < left);
+}
+
+template <typename T1, typename M1, typename D1, typename T2, typename M2, typename D2>
+[[nodiscard]] bool operator>=(const unique_ptr<T1, M1, D1>& left, const unique_ptr<T2, M2, D2>& right)
+{
+    return !(left < right);
+}
+
+template <typename T1, typename M1, typename D1, typename T2, typename M2, typename D2>
+[[nodiscard]] bool operator==(const unique_ptr<T1, M1, D1>& left, const unique_ptr<T2, M2, D2>& right)
+{
+    if(std::addressof(left) == std::addressof(right))
+    {
+        return true;
+    }
+    std::scoped_lock lock { left, right };
+    return left.get() == right.get();
+}
+
+template <typename T1, typename M1, typename D1, typename T2, typename M2, typename D2>
+requires std::three_way_comparable_with<impl::to_row_t<T1, M1, D1>, impl::to_row_t<T2, M2, D2>>
+    std::compare_three_way_result_t<impl::to_row_t<T1, M1, D1>, impl::to_row_t<T2, M2, D2>>
+    operator<=>(const unique_ptr<T1, M1, D1>& left, const unique_ptr<T2, M2, D2>& right)
+{
+    if(std::addressof(left) == std::addressof(right))
+    {
+        std::lock_guard lock { left };
+        return left.get() <=> right.get();
+    }
+    std::scoped_lock lock { left, right };
+    return left.get() <=> right.get();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Compares a ts::unique_ptr and nullptr.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator<(const unique_ptr<T, M, D>& left, std::nullptr_t right)
+{
+    using t_ptr = typename unique_ptr<T, M, D>::pointer;
+    std::lock_guard lock { left };
+    return std::less<t_ptr> {}(left.get(), right);
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator<(std::nullptr_t left, const unique_ptr<T, M, D>& right)
+{
+    using t_ptr = typename unique_ptr<T, M, D>::pointer;
+    std::lock_guard lock { right };
+    return std::less<t_ptr> {}(left, right.get());
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator>(const unique_ptr<T, M, D>& left, std::nullptr_t right)
+{
+    return right < left;
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator>(std::nullptr_t left, const unique_ptr<T, M, D>& right)
+{
+    return right < left;
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator<=(const unique_ptr<T, M, D>& left, std::nullptr_t right)
+{
+    return !(right < left);
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator<=(std::nullptr_t left, const unique_ptr<T, M, D>& right)
+{
+    return !(right < left);
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator>=(const unique_ptr<T, M, D>& left, std::nullptr_t right)
+{
+    return !(left < right);
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator>=(std::nullptr_t left, const unique_ptr<T, M, D>& right)
+{
+    return !(left < right);
+}
+
+template <typename T, typename M, typename D>
+[[nodiscard]] bool operator==(const unique_ptr<T, M, D>& left, std::nullptr_t)
+{
+    return !static_cast<bool>(left);
+}
+
+template <typename T, typename M, typename D>
+requires std::three_way_comparable<impl::to_row_t<T, M, D>>
+    std::compare_three_way_result_t<impl::to_row_t<T, M, D>>
+    operator<=>(const unique_ptr<T, M, D>& left, nullptr_t)
+{
+    std::lock_guard lock { left };
+    return left.get() <=> static_cast<impl::to_row_t<T, M, D>>(nullptr);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
