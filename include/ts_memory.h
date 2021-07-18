@@ -306,13 +306,13 @@ public:
 
     unique_ptr(unique_ptr&& other) noexcept
     {
-        std::scoped_lock lock { this->m_mtx, other.m_mtx };
+        std::scoped_lock lock { *this, other };
         this->m_value = std::move(other.m_value);
     }
 
     unique_ptr& operator=(unique_ptr&& other) noexcept
     {
-        std::scoped_lock lock { this->m_mtx, other.m_mtx };
+        std::scoped_lock lock { *this, other };
         this->m_value = std::move(other.m_value);
         return *this;
     }
@@ -377,7 +377,7 @@ public:
      */
     explicit operator bool() const noexcept
     {
-        std::lock_guard lock { m_mtx };
+        std::lock_guard lock { *this };
         return static_cast<bool>(m_value);
     }
 
@@ -390,7 +390,7 @@ public:
      */
     [[nodiscard]] pointer release() noexcept
     {
-        std::lock_guard lock { m_mtx };
+        std::lock_guard lock { *this };
         return m_value.release();
     }
 
@@ -403,7 +403,7 @@ public:
     template <typename TArgs = pointer>
     void reset(TArgs new_pointer = nullptr) noexcept
     {
-        std::lock_guard lock { m_mtx };
+        std::lock_guard lock { *this };
         m_value.reset(new_pointer);
     }
 
