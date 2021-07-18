@@ -187,6 +187,177 @@ TEST(unique_ptr_api_testing, reset_operator)
     ASSERT_EQ(0, dummy_object::ms_object_count);
 }
 
+
+TEST(unique_ptr_api_testing, compare_operator)
+{
+    std::vector<ts::unique_ptr<int>> old_values;
+    old_values.reserve(200);
+    for (int32_t i = 0; i < 100; ++i)
+    {
+        auto ptr1 = ts::make_unique<int>();
+        auto ptr2 = ts::make_unique<int>();
+        ASSERT_EQ ((ptr1 == ptr2), (ptr1.get() == ptr2.get()));
+        ASSERT_EQ ((ptr1 != ptr2), (ptr1.get() != ptr2.get()));
+        ASSERT_EQ ((ptr1 < ptr2), (ptr1.get() < ptr2.get()));
+        ASSERT_EQ ((ptr1 <= ptr2), (ptr1.get() <= ptr2.get()));
+        ASSERT_EQ ((ptr1 > ptr2), (ptr1.get() > ptr2.get()));
+        ASSERT_EQ ((ptr1 >= ptr2), (ptr1.get() >= ptr2.get()));
+
+        old_values.push_back(std::move(ptr1));
+        old_values.push_back(std::move(ptr2));
+    }
+}
+
+TEST(unique_ptr_api_testing, self_compare)
+{
+    auto ptr = ts::make_unique<int>();
+    ASSERT_TRUE(ptr == ptr);
+    ASSERT_FALSE(ptr != ptr);
+    ASSERT_FALSE(ptr < ptr);
+    ASSERT_FALSE(ptr > ptr);
+    ASSERT_TRUE(ptr <= ptr);
+    ASSERT_TRUE(ptr >= ptr);
+}
+
+class class_with_three_way_comparison_operator
+{
+public:
+    auto operator<=>(const class_with_three_way_comparison_operator&) const = default;
+
+    ts::unique_ptr<int> m_ptr1;
+    ts::unique_ptr<int> m_ptr2;
+};
+
+TEST(unique_ptr_api_testing, three_way_comparison_operator)
+{
+    class_with_three_way_comparison_operator a, b;
+    ASSERT_TRUE(a == b);
+    ASSERT_TRUE(a >= b);
+    ASSERT_TRUE(a <= b);
+    ASSERT_FALSE(a != b);
+    ASSERT_FALSE(a < b);
+    ASSERT_FALSE(a > b);
+}
+
+TEST(unique_ptr_api_testing, three_way_comparison_operator_2)
+{
+    ts::unique_ptr<int> x;
+    ts::unique_ptr<int> y;
+    ASSERT_EQ((std::compare_three_way{}(x.get(), y.get()))
+              , (std::compare_three_way{}(x, y)));
+}
+
+TEST(unique_ptr_api_testing, compares_a_empty_unique_ptr_and_nullptr)
+{
+    ts::unique_ptr<int> empty_ptr;
+    ASSERT_TRUE(empty_ptr == nullptr);
+    ASSERT_TRUE(nullptr == empty_ptr);
+    ASSERT_FALSE(empty_ptr != nullptr);
+    ASSERT_FALSE(nullptr != empty_ptr);
+
+    // operator ==
+    ASSERT_EQ((empty_ptr == nullptr), (empty_ptr.get() == nullptr));
+    ASSERT_EQ((nullptr == empty_ptr), (nullptr == empty_ptr.get()));
+
+    // operator !=
+    ASSERT_EQ((empty_ptr != nullptr), (empty_ptr.get() != nullptr));
+    ASSERT_EQ((nullptr != empty_ptr), (nullptr != empty_ptr.get()));
+
+    // operator <
+    ASSERT_EQ((empty_ptr < nullptr), (empty_ptr.get() < nullptr));
+    ASSERT_EQ((nullptr < empty_ptr), (nullptr < empty_ptr.get()));
+
+    // operator >
+    ASSERT_EQ((empty_ptr > nullptr), (empty_ptr.get() > nullptr));
+    ASSERT_EQ((nullptr > empty_ptr), (nullptr > empty_ptr.get()));
+
+    // operator <=
+    ASSERT_EQ((empty_ptr <= nullptr), (empty_ptr.get() <= nullptr));
+    ASSERT_EQ((nullptr <= empty_ptr), (nullptr <= empty_ptr.get()));
+
+    // operator >=
+    ASSERT_EQ((empty_ptr >= nullptr), (empty_ptr.get() >= nullptr));
+    ASSERT_EQ((nullptr >= empty_ptr), (nullptr >= empty_ptr.get()));
+}
+
+TEST(unique_ptr_api_testing, compares_a_initialized_and_empty_unique_ptr)
+{
+    auto initialized_ptr = ts::make_unique<int>();
+    ts::unique_ptr<int> empty_ptr;
+
+    // operator ==
+    ASSERT_EQ((initialized_ptr == nullptr), (initialized_ptr == empty_ptr));
+    ASSERT_EQ((initialized_ptr == nullptr), (initialized_ptr == empty_ptr));
+    ASSERT_EQ((nullptr == initialized_ptr), (empty_ptr == initialized_ptr));
+    ASSERT_EQ((nullptr == initialized_ptr), (empty_ptr == initialized_ptr));
+
+    // operator !=
+    ASSERT_EQ((initialized_ptr != nullptr), (initialized_ptr != empty_ptr));
+    ASSERT_EQ((initialized_ptr != nullptr), (initialized_ptr != empty_ptr));
+    ASSERT_EQ((nullptr != initialized_ptr), (empty_ptr != initialized_ptr));
+    ASSERT_EQ((nullptr != initialized_ptr), (empty_ptr != initialized_ptr));
+
+    // operator <
+    ASSERT_EQ((initialized_ptr < nullptr), (initialized_ptr < empty_ptr));
+    ASSERT_EQ((initialized_ptr < nullptr), (initialized_ptr < empty_ptr));
+    ASSERT_EQ((nullptr < initialized_ptr), (empty_ptr < initialized_ptr));
+    ASSERT_EQ((nullptr < initialized_ptr), (empty_ptr < initialized_ptr));
+
+    // operator >
+    ASSERT_EQ((initialized_ptr > nullptr), (initialized_ptr > empty_ptr));
+    ASSERT_EQ((initialized_ptr > nullptr), (initialized_ptr > empty_ptr));
+    ASSERT_EQ((nullptr > initialized_ptr), (empty_ptr > initialized_ptr));
+    ASSERT_EQ((nullptr > initialized_ptr), (empty_ptr > initialized_ptr));
+
+    // operator <=
+    ASSERT_EQ((initialized_ptr <= nullptr), (initialized_ptr <= empty_ptr));
+    ASSERT_EQ((initialized_ptr <= nullptr), (initialized_ptr <= empty_ptr));
+    ASSERT_EQ((nullptr <= initialized_ptr), (empty_ptr <= initialized_ptr));
+    ASSERT_EQ((nullptr <= initialized_ptr), (empty_ptr <= initialized_ptr));
+
+    // operator >=
+    ASSERT_EQ((initialized_ptr >= nullptr), (initialized_ptr >= empty_ptr));
+    ASSERT_EQ((initialized_ptr >= nullptr), (initialized_ptr >= empty_ptr));
+    ASSERT_EQ((nullptr >= initialized_ptr), (empty_ptr >= initialized_ptr));
+    ASSERT_EQ((nullptr >= initialized_ptr), (empty_ptr >= initialized_ptr));
+}
+
+
+TEST(unique_ptr_api_testing, compares_a_initialized_unique_ptr_and_nullptr)
+{
+    auto initialized_ptr = ts::make_unique<int>();
+    ASSERT_TRUE(initialized_ptr != nullptr);
+    ASSERT_FALSE(initialized_ptr == nullptr);
+    ASSERT_TRUE(nullptr != initialized_ptr);
+    ASSERT_FALSE(nullptr == initialized_ptr);
+
+
+    // operator ==
+    ASSERT_EQ((initialized_ptr == nullptr), (initialized_ptr.get() == nullptr));
+    ASSERT_EQ((nullptr == initialized_ptr), (nullptr == initialized_ptr.get()));
+
+    // operator !=
+    ASSERT_EQ((initialized_ptr != nullptr), (initialized_ptr.get() != nullptr));
+    ASSERT_EQ((nullptr != initialized_ptr), (nullptr != initialized_ptr.get()));
+
+    // operator <
+    ASSERT_EQ((initialized_ptr < nullptr), (initialized_ptr.get() < nullptr));
+    ASSERT_EQ((nullptr < initialized_ptr), (nullptr < initialized_ptr.get()));
+
+    // operator >
+    ASSERT_EQ((initialized_ptr > nullptr), (initialized_ptr.get() > nullptr));
+    ASSERT_EQ((nullptr > initialized_ptr), (nullptr > initialized_ptr.get()));
+
+    // operator <=
+    ASSERT_EQ((initialized_ptr <= nullptr), (initialized_ptr.get() <= nullptr));
+    ASSERT_EQ((nullptr <= initialized_ptr), (nullptr <= initialized_ptr.get()));
+
+    // operator >=
+    ASSERT_EQ((initialized_ptr >= nullptr), (initialized_ptr.get() >= nullptr));
+    ASSERT_EQ((nullptr >= initialized_ptr), (nullptr >= initialized_ptr.get()));
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Thread safety testing.
 ////////////////////////////////////////////////////////////////////////////////
