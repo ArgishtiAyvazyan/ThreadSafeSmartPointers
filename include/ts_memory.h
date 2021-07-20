@@ -316,6 +316,13 @@ public:
     unique_ptr() = default;
 
     /**
+     * @brief   Constructs empty unique_ptr from nullptr.
+     */
+    unique_ptr(std::nullptr_t) noexcept
+    {
+    };
+
+    /**
      * @brief           Constructs ts::unique_ptr from raw pointer.
      *
      * @param value_ptr The raw pointer.
@@ -458,12 +465,12 @@ private:
     /**
      * The mutex for providing object thread-safety.
      */
-    mutable t_mutex m_mtx;
+    mutable t_mutex m_mtx{};
 
     /**
      * The non-thread-safe unique pointer for manage object lifetime.
      */
-    t_unique_ptr m_value;
+    t_unique_ptr m_value{};
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

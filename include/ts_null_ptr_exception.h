@@ -18,7 +18,7 @@ namespace ts {
 /**
  * @class null_ptr_exception
  *
- * @brief The exception class for handling null pointer dereferencing.
+ * @brief The exception class for handling null pointer dereference.
  */
 class null_ptr_exception : std::exception
 {

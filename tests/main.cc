@@ -50,6 +50,17 @@ TEST(unique_ptr_api_testing, make_unique)
     ASSERT_EQ(dummy_object::ms_object_count, 0);
 }
 
+TEST(unique_ptr_api_testing, constructor_with_nullptr)
+{
+    {
+        ts::unique_ptr<dummy_object> empty_ptr1 = nullptr;
+        ASSERT_FALSE(empty_ptr1);
+        ts::unique_ptr<dummy_object> empty_ptr2 { nullptr };
+        ASSERT_FALSE(empty_ptr2);
+    }
+    ASSERT_EQ(dummy_object::ms_object_count, 0);
+}
+
 TEST(unique_ptr_api_testing, structure_dereference)
 {
     {
