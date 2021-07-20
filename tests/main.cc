@@ -357,6 +357,17 @@ TEST(unique_ptr_api_testing, compares_a_initialized_unique_ptr_and_nullptr)
     ASSERT_EQ((nullptr >= initialized_ptr), (nullptr >= initialized_ptr.get()));
 }
 
+TEST(unique_ptr_api_testing, null_ptr_exception)
+{
+    if constexpr (ts::impl::config::s_enable_exceptions)
+    {
+        ts::unique_ptr<dummy_object> empty_ptr;
+        EXPECT_THROW(empty_ptr->inc(), ts::null_ptr_exception);
+        ts::unique_ptr<dummy_object[]> empty_arr;
+        EXPECT_THROW((*empty_ptr)[1], ts::null_ptr_exception);
+    }
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // Thread safety testing.

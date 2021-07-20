@@ -13,9 +13,26 @@
 #include <mutex>
 #include <type_traits>
 
+#include "ts_null_ptr_exception.h"
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 namespace ts {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace impl::config {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ *  API for disabled exception throwing, in that case then ts::unique_ptr is a null pointer.
+ */
+constexpr bool s_enable_exceptions = true;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+} // namespace impl::config
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 /**
  * @brief           ts::unique_ptr is a thread-safe smart pointer that owns and manages and
@@ -146,13 +163,29 @@ private:
         proxy_locker& operator=(proxy_locker&&) = delete;
         proxy_locker& operator=(const proxy_locker&) = delete;
 
-        t_element_type* operator->() noexcept
+        t_element_type* operator->() noexcept (!impl::config::s_enable_exceptions)
         {
+            if constexpr (impl::config::s_enable_exceptions)
+            {
+                if (nullptr == m_ptr)
+                {
+                    throw null_ptr_exception {
+                        "Trying to dereference null pointer using -> operator." };
+                }
+            }
             return m_ptr;
         }
 
-        const t_element_type* operator->() const noexcept
+        const t_element_type* operator->() const noexcept (!impl::config::s_enable_exceptions)
         {
+            if constexpr (impl::config::s_enable_exceptions)
+            {
+                if (nullptr == m_ptr)
+                {
+                    throw null_ptr_exception {
+                        "Trying to dereference null pointer using -> operator." };
+                }
+            }
             return m_ptr;
         }
 
@@ -211,8 +244,16 @@ private:
          * @return          The reference to the object.
          */
         template <typename TIndex>
-        t_element_type& operator[](TIndex index) noexcept
+        t_element_type& operator[](TIndex index) noexcept (!impl::config::s_enable_exceptions)
         {
+            if constexpr (impl::config::s_enable_exceptions)
+            {
+                if (nullptr == m_ptr)
+                {
+                    throw null_ptr_exception {
+                        "Trying to dereference null pointer using [] operator." };
+                }
+            }
             return m_ptr[index];
         }
 
@@ -324,6 +365,9 @@ public:
      *          Before giving the object reference to user locks the mutex,
      *          the mutex still locked until reached ";".
      *
+     * @throws  ts::null_ptr_exception if this pointer hasn't owned any object.
+     *          The condition *this == nullptr is true.
+     *
      * @example ts::unique_ptr<std::vector<int>> p_vec = ts::make_unique<std::vector<int>>();
      *          p_vec->push_back(13);
      *
@@ -340,6 +384,9 @@ public:
      * @details This API working on Execute Around Pointer Idiom.
      *          Before giving the object reference to user locks the mutex,
      *          the mutex still locked until reached ";".
+     *
+     * @throws  ts::null_ptr_exception if this pointer hasn't owned any object.
+     *          The condition *this == nullptr is true.
      *
      * @return  Returns a pointer to the object owned by *this.
      */
