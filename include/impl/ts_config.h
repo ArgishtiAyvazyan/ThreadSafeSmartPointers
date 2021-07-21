@@ -1,0 +1,26 @@
+#ifndef THREADSAFESMARTPOINTERS_TS_CONFIG_H
+#define THREADSAFESMARTPOINTERS_TS_CONFIG_H
+
+/**
+ * @file        ts_config.h
+ * @author      Argishti Ayvazyan (ayvazyan.argishti@gmail.com)
+ * @brief       Declaration of implementation configurations.
+ * @date        7/21/2021.
+ * @copyright   Copyright (c) 2021
+ */
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+namespace ts::impl::config {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ *  API for disabled exception throwing, in that case then ts::unique_ptr is a null pointer.
+ */
+constexpr bool s_enable_exceptions = true;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+} // namespace ts::impl::config
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+#endif //THREADSAFESMARTPOINTERS_TS_CONFIG_H
