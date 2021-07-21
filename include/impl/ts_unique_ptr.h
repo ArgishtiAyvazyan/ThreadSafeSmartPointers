@@ -23,7 +23,6 @@ namespace ts {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
 /**
  * @brief           ts::unique_ptr is a thread-safe smart pointer that owns and manages and
  *                  provides thread safety of another object through a pointer and disposes
@@ -32,37 +31,29 @@ namespace ts {
  * @details         The ts::unique_ptr implemented using Execute Around Pointer Idiom.
  *                  The all methods called using structure dereference or subscript
  *                  operators will be executed under the protection of a mutex.
- *
  * @example         // Below shown 2 examples for simple use.
  *                  ts::unique_ptr<std::vector<int>> p_vec { new std::vector<int>{} };
  *                  p_vec->push_back(13);
- *
  * @example         ts::unique_ptr<std::vector<int>> p_vec = ts::make_unique<std::vector<int>>();
  *                  p_vec->push_back(13);
- *
  * @example         // Below shown use example for array.
  *                  auto ptr = ts::make_unique<int32_t[]>(100);
  *                  (*ptr)[1] = 12;
  *                  auto val = (*ptr)[2];
- *
  * @warning         Do not take any reference using subscript operator.
  *                  All saved references are not thread-safe.
- *
  * @example         // Below shown example for use with custom mutex.
  *                  ts::unique_ptr<std::vector<int>, boost::sync::spin_mutex>
  *                      p_vec { new std::vector<int>{} };
  *                  p_vec->push_back(13);
- *
  * @example         Below shown example for use with custom deleter.
  *                  ts::unique_ptr<std::vector<int>, std::mutex
  *                      , std::function<void(std::vector<int>*)>>
  *                      p_vec { new std::vector<int>{}, [](auto* vec) { delete vec; } };
  *                  p_vec->push_back(13);
- *
  * @warning         Structure dereference or subscript operators cannot protect object from
  *                  API races. To safe object from API races, you can use lock, unlock and get
  *                  API's. The examples below.
- *
  * @example         auto queue = ts::make_unique<std::queue<int32_t>>();
  *                  // do something
  *                  {
@@ -73,7 +64,6 @@ namespace ts {
  *                      }
  *                      queue->unlock();
  *                  }
- *
  * @example         auto queue = ts::make_unique<std::queue<int32_t>>();
  *                  // do something
  *                  {
@@ -83,7 +73,6 @@ namespace ts {
  *                          queue.get()->pop();
  *                      }
  *                  }
- *
  * @tparam T        The type of element or array of elements.
  * @tparam TMutex   The type of mutex (optional by default std::mutex)
  * @tparam TDeleter The type of deleter (optional by default std::default_delete<T>)
@@ -294,7 +283,6 @@ public:
      *
      * @warning This API is not thread-safe. Use it only then unique_ptr
      *          locked (\refitem ts::unique_ptr::lock).
-     *
      * @return  The raw pointer.
      */
     [[nodiscard]] pointer get() const noexcept
@@ -361,13 +349,10 @@ public:
      * @details This API working on Execute Around Pointer Idiom.
      *          Before giving the object reference to user locks the mutex,
      *          the mutex still locked until reached ";".
-     *
      * @throws  ts::null_ptr_exception if this pointer hasn't owned any object.
      *          The condition *this == nullptr is true.
-     *
      * @example ts::unique_ptr<std::vector<int>> p_vec = ts::make_unique<std::vector<int>>();
      *          p_vec->push_back(13);
-     *
      * @return  Returns a pointer to the object owned by *this.
      */
     proxy_locker operator->() const
@@ -381,10 +366,8 @@ public:
      * @details This API working on Execute Around Pointer Idiom.
      *          Before giving the object reference to user locks the mutex,
      *          the mutex still locked until reached ";".
-     *
      * @throws  ts::null_ptr_exception if this pointer hasn't owned any object.
      *          The condition *this == nullptr is true.
-     *
      * @return  Returns a pointer to the object owned by *this.
      */
     proxy_locker_for_subscript operator*() const
@@ -429,7 +412,6 @@ public:
      * @brief   Releases the ownership of the managed object and returns owned object pointer.
      *
      * @warning The caller is responsible for deleting the object.
-     *
      * @return  Pointer to the managed object or nullptr if there was no managed object.
      */
     [[nodiscard]] pointer release() noexcept
@@ -461,7 +443,7 @@ private:
      * The non-thread-safe unique pointer for manage object lifetime.
      */
     t_unique_ptr m_value{};
-};
+}; // class unique_ptr
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utilities
@@ -473,7 +455,6 @@ private:
  *
  * @example         ts::unique_ptr<std::vector<int>> p_vec = ts::make_unique<std::vector<int>>();
  *                  p_vec->push_back(13);
- *
  * @tparam T        The type of element.
  * @tparam TArgs    The types of list of arguments with which an instance of
  *                  T will be constructed.
@@ -495,7 +476,6 @@ std::enable_if_t<!std::is_array<T>::value, unique_ptr<T>> make_unique(TArgs&&...
  *                  {
  *                      (*arr_ptr)[i] = 0;
  *                  }
- *
  * @tparam T        The type of elements array.
  * @param n         The length of the array to construct.
  * @return          ts::unique_ptr of an instance of type T.
