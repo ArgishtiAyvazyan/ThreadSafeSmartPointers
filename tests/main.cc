@@ -1081,6 +1081,146 @@ TEST(shared_ptr_thread_safety_testing, concurrent_copy_move_delete)
     ASSERT_EQ(dummy_object::ms_object_count, 0);
 }
 
+TEST(shared_ptr_api_testing, compare_operator)
+{
+    std::vector<ts::shared_ptr<int>> old_values;
+    old_values.reserve(200);
+    for (int32_t i = 0; i < 100; ++i)
+    {
+        auto ptr1 = ts::make_shared<int>();
+        auto ptr2 = ts::make_shared<int>();
+        ASSERT_EQ ((ptr1 == ptr2), (ptr1.get() == ptr2.get()));
+        ASSERT_EQ ((ptr1 != ptr2), (ptr1.get() != ptr2.get()));
+        ASSERT_EQ ((ptr1 < ptr2), (ptr1.get() < ptr2.get()));
+        ASSERT_EQ ((ptr1 <= ptr2), (ptr1.get() <= ptr2.get()));
+        ASSERT_EQ ((ptr1 > ptr2), (ptr1.get() > ptr2.get()));
+        ASSERT_EQ ((ptr1 >= ptr2), (ptr1.get() >= ptr2.get()));
+
+        old_values.push_back(std::move(ptr1));
+        old_values.push_back(std::move(ptr2));
+    }
+}
+
+TEST(shared_ptr_api_testing, self_compare)
+{
+    auto ptr = ts::make_shared<int>();
+    ASSERT_TRUE(ptr == ptr);
+    ASSERT_FALSE(ptr != ptr);
+    ASSERT_FALSE(ptr < ptr);
+    ASSERT_FALSE(ptr > ptr);
+    ASSERT_TRUE(ptr <= ptr);
+    ASSERT_TRUE(ptr >= ptr);
+}
+
+TEST(shared_ptr_api_testing, compares_a_empty_shared_ptr_and_nullptr)
+{
+    ts::shared_ptr<int> empty_ptr;
+    ASSERT_TRUE(empty_ptr == nullptr);
+    ASSERT_TRUE(nullptr == empty_ptr);
+    ASSERT_FALSE(empty_ptr != nullptr);
+    ASSERT_FALSE(nullptr != empty_ptr);
+
+    // operator ==
+    ASSERT_EQ((empty_ptr == nullptr), (empty_ptr.get() == nullptr));
+    ASSERT_EQ((nullptr == empty_ptr), (nullptr == empty_ptr.get()));
+
+    // operator !=
+    ASSERT_EQ((empty_ptr != nullptr), (empty_ptr.get() != nullptr));
+    ASSERT_EQ((nullptr != empty_ptr), (nullptr != empty_ptr.get()));
+
+    // operator <
+    ASSERT_EQ((empty_ptr < nullptr), (empty_ptr.get() < nullptr));
+    ASSERT_EQ((nullptr < empty_ptr), (nullptr < empty_ptr.get()));
+
+    // operator >
+    ASSERT_EQ((empty_ptr > nullptr), (empty_ptr.get() > nullptr));
+    ASSERT_EQ((nullptr > empty_ptr), (nullptr > empty_ptr.get()));
+
+    // operator <=
+    ASSERT_EQ((empty_ptr <= nullptr), (empty_ptr.get() <= nullptr));
+    ASSERT_EQ((nullptr <= empty_ptr), (nullptr <= empty_ptr.get()));
+
+    // operator >=
+    ASSERT_EQ((empty_ptr >= nullptr), (empty_ptr.get() >= nullptr));
+    ASSERT_EQ((nullptr >= empty_ptr), (nullptr >= empty_ptr.get()));
+}
+
+TEST(shared_ptr_api_testing, compares_a_initialized_and_empty_shared_ptr)
+{
+    auto initialized_ptr = ts::make_shared<int>();
+    ts::shared_ptr<int> empty_ptr;
+
+    // operator ==
+    ASSERT_EQ((initialized_ptr == nullptr), (initialized_ptr == empty_ptr));
+    ASSERT_EQ((initialized_ptr == nullptr), (initialized_ptr == empty_ptr));
+    ASSERT_EQ((nullptr == initialized_ptr), (empty_ptr == initialized_ptr));
+    ASSERT_EQ((nullptr == initialized_ptr), (empty_ptr == initialized_ptr));
+
+    // operator !=
+    ASSERT_EQ((initialized_ptr != nullptr), (initialized_ptr != empty_ptr));
+    ASSERT_EQ((initialized_ptr != nullptr), (initialized_ptr != empty_ptr));
+    ASSERT_EQ((nullptr != initialized_ptr), (empty_ptr != initialized_ptr));
+    ASSERT_EQ((nullptr != initialized_ptr), (empty_ptr != initialized_ptr));
+
+    // operator <
+    ASSERT_EQ((initialized_ptr < nullptr), (initialized_ptr < empty_ptr));
+    ASSERT_EQ((initialized_ptr < nullptr), (initialized_ptr < empty_ptr));
+    ASSERT_EQ((nullptr < initialized_ptr), (empty_ptr < initialized_ptr));
+    ASSERT_EQ((nullptr < initialized_ptr), (empty_ptr < initialized_ptr));
+
+    // operator >
+    ASSERT_EQ((initialized_ptr > nullptr), (initialized_ptr > empty_ptr));
+    ASSERT_EQ((initialized_ptr > nullptr), (initialized_ptr > empty_ptr));
+    ASSERT_EQ((nullptr > initialized_ptr), (empty_ptr > initialized_ptr));
+    ASSERT_EQ((nullptr > initialized_ptr), (empty_ptr > initialized_ptr));
+
+    // operator <=
+    ASSERT_EQ((initialized_ptr <= nullptr), (initialized_ptr <= empty_ptr));
+    ASSERT_EQ((initialized_ptr <= nullptr), (initialized_ptr <= empty_ptr));
+    ASSERT_EQ((nullptr <= initialized_ptr), (empty_ptr <= initialized_ptr));
+    ASSERT_EQ((nullptr <= initialized_ptr), (empty_ptr <= initialized_ptr));
+
+    // operator >=
+    ASSERT_EQ((initialized_ptr >= nullptr), (initialized_ptr >= empty_ptr));
+    ASSERT_EQ((initialized_ptr >= nullptr), (initialized_ptr >= empty_ptr));
+    ASSERT_EQ((nullptr >= initialized_ptr), (empty_ptr >= initialized_ptr));
+    ASSERT_EQ((nullptr >= initialized_ptr), (empty_ptr >= initialized_ptr));
+}
+
+TEST(shared_ptr_api_testing, compares_a_initialized_shared_ptr_and_nullptr)
+{
+    auto initialized_ptr = ts::make_shared<int>();
+    ASSERT_TRUE(initialized_ptr != nullptr);
+    ASSERT_FALSE(initialized_ptr == nullptr);
+    ASSERT_TRUE(nullptr != initialized_ptr);
+    ASSERT_FALSE(nullptr == initialized_ptr);
+
+
+    // operator ==
+    ASSERT_EQ((initialized_ptr == nullptr), (initialized_ptr.get() == nullptr));
+    ASSERT_EQ((nullptr == initialized_ptr), (nullptr == initialized_ptr.get()));
+
+    // operator !=
+    ASSERT_EQ((initialized_ptr != nullptr), (initialized_ptr.get() != nullptr));
+    ASSERT_EQ((nullptr != initialized_ptr), (nullptr != initialized_ptr.get()));
+
+    // operator <
+    ASSERT_EQ((initialized_ptr < nullptr), (initialized_ptr.get() < nullptr));
+    ASSERT_EQ((nullptr < initialized_ptr), (nullptr < initialized_ptr.get()));
+
+    // operator >
+    ASSERT_EQ((initialized_ptr > nullptr), (initialized_ptr.get() > nullptr));
+    ASSERT_EQ((nullptr > initialized_ptr), (nullptr > initialized_ptr.get()));
+
+    // operator <=
+    ASSERT_EQ((initialized_ptr <= nullptr), (initialized_ptr.get() <= nullptr));
+    ASSERT_EQ((nullptr <= initialized_ptr), (nullptr <= initialized_ptr.get()));
+
+    // operator >=
+    ASSERT_EQ((initialized_ptr >= nullptr), (initialized_ptr.get() >= nullptr));
+    ASSERT_EQ((nullptr >= initialized_ptr), (nullptr >= initialized_ptr.get()));
+}
+
 
 int main(int argc, char **argv)
 {

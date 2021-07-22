@@ -710,6 +710,52 @@ std::enable_if_t<std::is_array<T>::value, shared_ptr<T>> make_shared(std::size_t
     return shared_ptr<T>(new t_element_type[n]);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Compares two ts::shared_ptrs
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T1, typename M1, typename T2, typename M2>
+[[nodiscard]] bool operator==(const shared_ptr<T1, M1>& left, const shared_ptr<T2, M2>& right)
+{
+    if (std::addressof(left) == std::addressof(right))
+    {
+        return true;
+    }
+    std::scoped_lock lock { left, right };
+    return left.get() == right.get();
+}
+
+
+template <typename T1, typename M1, typename T2, typename M2>
+[[nodiscard]] std::strong_ordering operator<=>(const shared_ptr<T1, M1>& left
+        , const shared_ptr<T2, M2>& right) noexcept
+{
+    if (std::addressof(left) == std::addressof(right))
+    {
+        const auto* ptr = static_cast<typename shared_ptr<T1, M1>::element_type*>(nullptr);
+        return ptr <=> ptr;
+    }
+    std::scoped_lock lock { left, right };
+    return left.get() <=> right.get();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Compares a ts::shared_ptr and nullptr.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template <typename T, typename M>
+[[nodiscard]] bool operator==(const shared_ptr<T, M>& left, std::nullptr_t)
+{
+    return !static_cast<bool>(left);
+}
+
+template <typename T, typename M>
+[[nodiscard]] std::strong_ordering operator<=>(const shared_ptr<T, M>& left
+        , std::nullptr_t) noexcept
+{
+    std::lock_guard lock { left };
+    return left.get() <=> static_cast<typename shared_ptr<T, M>::element_type*>(nullptr);
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 } // namespace ts
