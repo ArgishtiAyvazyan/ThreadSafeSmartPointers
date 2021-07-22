@@ -218,12 +218,10 @@ private:
         /**
          * @brief           The subscript operator for working with arrays.
          *
-         * @tparam TIndex   The array index type.
          * @param index     The array index.
          * @return          The reference to the object.
          */
-        template <typename TIndex>
-        t_element_type& operator[](TIndex index) noexcept (!impl::config::s_enable_exceptions)
+        t_element_type& operator[](std::size_t index) noexcept (!impl::config::s_enable_exceptions)
         {
             if constexpr (impl::config::s_enable_exceptions)
             {
