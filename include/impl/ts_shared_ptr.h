@@ -643,7 +643,7 @@ public:
      */
     bool try_lock_shared() const requires(is_read_only && impl::is_shared_lockable<t_mutex>)
     {
-        mutex_ref().try_lock_shared();
+        return mutex_ref().try_lock_shared();
     }
 
 private:

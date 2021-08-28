@@ -731,10 +731,10 @@ struct dummy_shared_mutex
 {
     void lock() { ++lock_coll_count; }
     void unlock() { ++unlock_coll_count; }
-    bool try_lock() { ++try_lock_coll_count; }
+    bool try_lock() { ++try_lock_coll_count; return true; }
     void lock_shared() { ++lock_shared_coll_count; }
     void unlock_shared() { ++unlock_shared_coll_count; }
-    bool try_lock_shared() { ++try_lock_shared_coll_count; }
+    bool try_lock_shared() { ++try_lock_shared_coll_count; return true; }
 
 
     static void reset()

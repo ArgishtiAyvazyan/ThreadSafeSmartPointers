@@ -20,7 +20,7 @@ namespace ts {
  *
  * @brief The exception class for handling null pointer dereference.
  */
-class null_ptr_exception : std::exception
+class null_ptr_exception : std::runtime_error
 {
 public:
     null_ptr_exception() = default;
@@ -31,7 +31,7 @@ public:
     null_ptr_exception& operator=(const null_ptr_exception&) = default;
 
     explicit null_ptr_exception(const char* massage) noexcept
-        : std::exception(massage)
+        : std::runtime_error(massage)
     { }
 }; // class null_ptr_exception
 
