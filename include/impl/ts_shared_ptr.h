@@ -105,8 +105,7 @@ using t_write_lock = std::unique_lock<T>;
  *                      p_vec { new std::vector<int>{} };
  *                  p_vec->push_back(13);
  * @example         Below shown example for use with custom deleter.
- *                  ts::shared_ptr<std::vector<int>, std::mutex
- *                      , std::function<void(std::vector<int>*)>>
+ *                  ts::shared_ptr<std::vector<int>>
  *                      p_vec { new std::vector<int>{}, [](auto* vec) { delete vec; } };
  *                  p_vec->push_back(13);
  * @warning         Structure dereference or subscript operators cannot protect object from

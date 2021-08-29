@@ -103,6 +103,11 @@ public:
      */
     using deleter_type = typename t_unique_ptr::deleter_type;
 
+    /**
+     * The mutex type.
+     */
+    using mutex_type = t_mutex;
+
 private:
     ////////////////////////////////////////////////////////////////////////////////////////////////
     /**
